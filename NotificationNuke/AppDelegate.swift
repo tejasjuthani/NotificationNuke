@@ -2,16 +2,24 @@ import Cocoa
 import SwiftUI
 import UserNotifications
 
-class AppDelegate: NSObject, NSApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var statusItem: NSStatusItem!
     private var notificationManager = NotificationManager.shared
     private var mainWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        print("🚀 NotificationNuke launching...")
+
         setupMenuBar()
         requestNotificationPermissions()
         startMonitoringNotifications()
+
+        // Initialize launch-at-login support
+        LaunchAtLoginManager.shared.setEnabled(UserDefaults.standard.bool(forKey: "LaunchAtLogin"))
+
         openMainWindow()
+
+        print("✅ NotificationNuke ready")
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -150,15 +158,56 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func requestNotificationPermissions() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in
-            if let error = error {
-                print("Error requesting notification permissions: \(error)")
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { [weak self] granted, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("❌ Permission request error: \(error.localizedDescription)")
+                    self?.showPermissionError(error)
+                } else if granted {
+                    print("✅ Notification permissions granted")
+                } else {
+                    print("⚠️ Notification permissions denied by user")
+                    self?.showPermissionDeniedAlert()
+                }
             }
         }
     }
 
+    private func showPermissionError(_ error: Error) {
+        let alert = NSAlert()
+        alert.messageText = "Permission Request Error"
+        alert.informativeText = "Failed to request notification permissions: \(error.localizedDescription)"
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
+    }
+
+    private func showPermissionDeniedAlert() {
+        let alert = NSAlert()
+        alert.messageText = "Notification Permissions Required"
+        alert.informativeText = "NotificationNuke needs notification access to work. Please enable it in System Settings > Notifications."
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
+    }
+
     private func startMonitoringNotifications() {
         notificationManager.startMonitoring()
+    }
+
+    // MARK: - NSWindowDelegate Methods
+
+    func windowShouldClose(_ sender: NSWindow) -> Bool {
+        // Hide window instead of closing it for better UX
+        sender.orderOut(nil)
+        print("📋 Main window hidden")
+        return false
+    }
+
+    func windowDidResignMain(_ notification: Notification) {
+        // Optional: Additional handling when window loses focus
+        // For now, we don't need to do anything special here
+        print("📋 Main window resigned focus")
     }
 }
 
