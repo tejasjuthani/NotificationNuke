@@ -112,10 +112,31 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
             let window = NSWindow(contentViewController: hostingController)
             window.title = "NotificationNuke"
-            window.styleMask = [.titled, .closable, .miniaturizable]
-            window.setContentSize(NSSize(width: 500, height: 400))
+
+            // App Store compliant window configuration
+            // Include resizable flag for better user experience and HIG compliance
+            window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
+
+            // Set initial size and constraints
+            window.setContentSize(NSSize(width: 500, height: 600))
+
+            // Set minimum and maximum sizes for proper window behavior
+            // Minimum: 400x500 (prevents UI from becoming unusable)
+            // Maximum: 600x800 (prevents excessive scaling on large displays)
+            window.minSize = NSSize(width: 400, height: 500)
+            window.maxSize = NSSize(width: 600, height: 800)
+
+            // Center window on screen (App Store recommended)
             window.center()
+
+            // Keep window in memory when closed (for quick reopening)
             window.isReleasedWhenClosed = false
+
+            // Enable window restoration (macOS 10.7+)
+            window.restorationClass = AppDelegate.self
+
+            // Accessibility: ensure window has proper title for VoiceOver
+            window.accessibilityLabel = "NotificationNuke Preferences"
 
             mainWindow = window
         }
