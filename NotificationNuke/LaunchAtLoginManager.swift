@@ -5,9 +5,9 @@ import ServiceManagement
 ///
 /// **App Store Compliance:**
 /// - Uses modern SMAppService API (introduced macOS 13.0)
-/// - Requires `com.apple.security.automation` entitlement
 /// - Requires `com.apple.security.app-sandbox = true` entitlement
-/// - Deprecated SMAppService is no longer used
+/// - Does NOT require automation entitlement (SMAppService is App Store compliant)
+/// - Deprecated APIs are no longer used
 ///
 /// **Sandbox Restrictions:**
 /// - The app runs in a restricted sandbox after launch
@@ -75,8 +75,8 @@ class LaunchAtLoginManager {
     }
 
     /// Synchronize cached UserDefaults with actual system status
-    /// Called on initialization to ensure consistency
-    private func syncStatus() {
+    /// Called on initialization and app launch to ensure consistency
+    func syncStatus() {
         let systemEnabled = SMAppService.mainApp.status == .enabled
         UserDefaults.standard.set(systemEnabled, forKey: launchAtLoginKey)
     }

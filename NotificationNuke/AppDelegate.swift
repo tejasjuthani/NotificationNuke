@@ -14,8 +14,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         requestNotificationPermissions()
         startMonitoringNotifications()
 
-        // Initialize launch-at-login support
-        LaunchAtLoginManager.shared.setEnabled(UserDefaults.standard.bool(forKey: "LaunchAtLogin"))
+        // Sync launch-at-login preference (do not re-register every launch)
+        // Read system status without forcing register/unregister
+        LaunchAtLoginManager.shared.syncStatus()
 
         openMainWindow()
 
@@ -140,15 +141,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             // Keep window in memory when closed (for quick reopening)
             window.isReleasedWhenClosed = false
 
-            // Enable window restoration (macOS 10.7+)
-            window.restorationClass = AppDelegate.self
-
-            // Accessibility: ensure window has proper title for VoiceOver
-            window.accessibilityLabel = "NotificationNuke Preferences"
+            // Do not set a restorationClass unless a proper NSWindowRestoration implementer exists.
+            // Accessibility: window title is already set and will be used by VoiceOver.
+            // Assign window delegate so delegate methods are called.
+            window.delegate = self
 
             mainWindow = window
         }
 
+        // Avoid re-showing if already visible
+        guard mainWindow?.isVisible != true else { return }
         mainWindow?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }

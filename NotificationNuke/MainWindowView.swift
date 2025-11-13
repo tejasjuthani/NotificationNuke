@@ -192,21 +192,15 @@ struct MainWindowView: View {
 }
 
 #Preview("With Notifications") {
-    let mockManager = NotificationManager.shared
-    mockManager.notificationCount = 5
-
-    return MainWindowView()
-        .environmentObject(mockManager)
+    MainWindowView()
+        .environmentObject(NotificationManager.shared)
         .preferredColorScheme(.light)
         .frame(width: 500, height: 600)
 }
 
 #Preview("No Notifications") {
-    let mockManager = NotificationManager.shared
-    mockManager.notificationCount = 0
-
-    return MainWindowView()
-        .environmentObject(mockManager)
+    MainWindowView()
+        .environmentObject(NotificationManager.shared)
         .preferredColorScheme(.dark)
         .frame(width: 500, height: 600)
 }

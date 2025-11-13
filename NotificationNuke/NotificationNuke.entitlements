@@ -9,9 +9,5 @@
 	<!-- Notification Access - Required to read/clear notifications -->
 	<key>com.apple.security.personal-information.notifications</key>
 	<true/>
-
-	<!-- Automation - Required for launch-at-login feature -->
-	<key>com.apple.security.automation</key>
-	<true/>
 </dict>
 </plist>
