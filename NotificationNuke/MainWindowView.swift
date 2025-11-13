@@ -1,133 +1,212 @@
 import SwiftUI
 
+/// App Store compliant preferences window for NotificationNuke
+/// Follows macOS Human Interface Guidelines and accessibility standards
 struct MainWindowView: View {
     @EnvironmentObject var notificationManager: NotificationManager
     @State private var showingClearConfirmation = false
+    @State private var showingClearSuccess = false
+    @State private var showingErrorAlert = false
+    @State private var errorMessage = ""
     @State private var launchAtLogin = LaunchAtLoginManager.shared.isEnabled
+    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            VStack(spacing: 12) {
-                Image(systemName: "bell.fill")
-                    .font(.system(size: 60))
-                    .foregroundColor(.blue)
-
-                Text("NotificationNuke")
-                    .font(.title)
-                    .fontWeight(.bold)
-
-                Text("Clear all macOS notifications instantly")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            .padding(.top, 40)
-            .padding(.bottom, 30)
-
-            Divider()
-
-            // Notification Count Section
-            VStack(spacing: 16) {
-                HStack {
-                    Image(systemName: "number.circle.fill")
+        ScrollView {
+            VStack(spacing: 0) {
+                // Header Section
+                VStack(spacing: 12) {
+                    Image(systemName: "bell.fill")
+                        .font(.system(size: 60))
                         .foregroundColor(.blue)
-                    Text("Current Notifications")
-                        .font(.headline)
-                    Spacer()
-                    Text("\(notificationManager.notificationCount)")
-                        .font(.title2)
+                        .accessibilityHidden(true)
+
+                    Text("NotificationNuke")
+                        .font(.title)
                         .fontWeight(.bold)
-                        .foregroundColor(notificationManager.notificationCount > 0 ? .red : .green)
+                        .accessibilityAddTraits(.isHeader)
+
+                    Text("Clear all macOS notifications instantly")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .accessibilityLabel("NotificationNuke app description")
+                }
+                .padding(.top, 40)
+                .padding(.bottom, 30)
+
+                Divider()
+
+                // Notification Count Section
+                VStack(spacing: 16) {
+                    // Status display with colorblind-friendly indicator
+                    HStack(spacing: 12) {
+                        Image(systemName: "number.circle.fill")
+                            .foregroundColor(.blue)
+                            .accessibilityHidden(true)
+
+                        Text("Current Notifications")
+                            .font(.headline)
+
+                        Spacer()
+
+                        HStack(spacing: 8) {
+                            Text("\(notificationManager.notificationCount)")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(notificationManager.notificationCount > 0 ? .red : .green)
+
+                            // Add symbol for colorblind accessibility
+                            Image(systemName: notificationManager.notificationCount > 0 ? "exclamationmark.circle.fill" : "checkmark.circle.fill")
+                                .foregroundColor(notificationManager.notificationCount > 0 ? .red : .green)
+                                .accessibilityHidden(true)
+                        }
+                    }
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(8)
+                    .accessibilityLabel("Notification Status")
+                    .accessibilityValue("\(notificationManager.notificationCount) notification\(notificationManager.notificationCount != 1 ? "s" : "")")
+                    .accessibilityHint(notificationManager.notificationCount > 0 ? "You have pending notifications" : "All notifications cleared")
+
+                    // Clear Button with standard macOS styling
+                    Button(action: {
+                        if notificationManager.notificationCount > 0 {
+                            showingClearConfirmation = true
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: "trash.fill")
+                                .accessibilityHidden(true)
+                            Text("Clear All Notifications")
+                                .fontWeight(.semibold)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .disabled(notificationManager.notificationCount == 0)
+                    .buttonStyle(.bordered)
+                    .tint(.red)
+                    .accessibilityLabel("Clear All Notifications")
+                    .accessibilityHint(notificationManager.notificationCount > 0 ? "Remove all \(notificationManager.notificationCount) notification(s)" : "No notifications to clear")
+                    .alert("Clear All Notifications?", isPresented: $showingClearConfirmation) {
+                        Button("Cancel", role: .cancel) { }
+                        Button("Clear", role: .destructive) {
+                            notificationManager.clearAllNotifications()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                showingClearSuccess = true
+                            }
+                        }
+                    } message: {
+                        Text("This will remove all \(notificationManager.notificationCount) notification\(notificationManager.notificationCount != 1 ? "s" : ""). This action cannot be undone.")
+                    }
+                    .alert("Notifications Cleared", isPresented: $showingClearSuccess) {
+                        Button("OK") { }
+                    } message: {
+                        Text("All notifications have been successfully removed.")
+                    }
                 }
                 .padding()
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(8)
 
-                // Clear Button
-                Button(action: {
-                    if notificationManager.notificationCount > 0 {
-                        showingClearConfirmation = true
-                    }
-                }) {
-                    HStack {
-                        Image(systemName: "trash.fill")
-                        Text("Clear All Notifications")
-                            .fontWeight(.semibold)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(notificationManager.notificationCount > 0 ? Color.red : Color.gray.opacity(0.3))
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
-                }
-                .buttonStyle(.plain)
-                .disabled(notificationManager.notificationCount == 0)
-                .alert("Clear All Notifications?", isPresented: $showingClearConfirmation) {
-                    Button("Cancel", role: .cancel) { }
-                    Button("Clear", role: .destructive) {
-                        notificationManager.clearAllNotifications()
-                    }
-                } message: {
-                    Text("This will remove all \(notificationManager.notificationCount) notification(s). This action cannot be undone.")
-                }
-            }
-            .padding()
+                Divider()
 
-            Divider()
+                // Settings Section
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Settings")
+                        .font(.headline)
+                        .accessibilityAddTraits(.isHeader)
 
-            // Settings Section
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Settings")
-                    .font(.headline)
+                    // Launch at Login Toggle
+                    Toggle("Launch at Login", isOn: $launchAtLogin)
+                        .accessibilityLabel("Launch at Login")
+                        .accessibilityHint("Enable or disable starting NotificationNuke automatically when you log in")
+                        .onChange(of: launchAtLogin) { newValue in
+                            LaunchAtLoginManager.shared.setEnabled(newValue)
+                        }
 
-                Toggle("Launch at Login", isOn: $launchAtLogin)
-                    .onChange(of: launchAtLogin) { newValue in
-                        LaunchAtLoginManager.shared.setEnabled(newValue)
-                    }
+                    // Help/About Section
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Image(systemName: "info.circle")
+                                .foregroundColor(.blue)
+                                .accessibilityHidden(true)
+                            Text("About")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .accessibilityAddTraits(.isHeader)
+                        }
 
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Image(systemName: "info.circle")
-                            .foregroundColor(.blue)
-                        Text("About")
-                            .font(.subheadline)
+                        Text("NotificationNuke automatically monitors and manages macOS notifications. Clear individual notifications from the menu bar or use this window to clear all at once. Launch at Login ensures the app runs whenever you start your Mac.")
+                            .font(.caption)
                             .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .lineLimit(nil)
+                            .accessibilityLabel("About NotificationNuke")
                     }
+                    .padding(.top, 8)
+                }
+                .padding()
 
-                    Text("NotificationNuke uses the macOS notification system to clear delivered notifications. You can also clear notifications from the menu bar icon.")
+                Spacer(minLength: 20)
+
+                // Footer with Version
+                HStack(spacing: 12) {
+                    Text("Version 2.0 - App Store Edition")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityLabel("App version")
+
+                    Spacer()
+
+                    Button("Quit") {
+                        NSApplication.shared.terminate(nil)
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityLabel("Quit NotificationNuke")
+                    .accessibilityHint("Close the preferences window and exit the application")
                 }
-                .padding(.top, 8)
+                .padding()
             }
-            .padding()
-
-            Spacer()
-
-            // Footer
-            HStack {
-                Text("Version 2.0 - App Store Edition")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-
-                Spacer()
-
-                Button("Quit") {
-                    NSApplication.shared.terminate(nil)
-                }
-                .buttonStyle(.plain)
-                .foregroundColor(.secondary)
-            }
-            .padding()
         }
-        .frame(width: 500, height: 400)
+        .frame(maxWidth: 500)
+        .frame(minHeight: 500, maxHeight: 700)
+        .alert("Error", isPresented: $showingErrorAlert) {
+            Button("OK") { }
+        } message: {
+            Text(errorMessage)
+        }
     }
 }
 
-struct MainWindowView_Previews: PreviewProvider {
-    static var previews: some View {
-        MainWindowView()
-            .environmentObject(NotificationManager.shared)
-    }
+// MARK: - Preview Variants for App Store Testing
+#Preview("Light Mode") {
+    MainWindowView()
+        .environmentObject(NotificationManager.shared)
+        .preferredColorScheme(.light)
+        .frame(width: 500, height: 600)
+}
+
+#Preview("Dark Mode") {
+    MainWindowView()
+        .environmentObject(NotificationManager.shared)
+        .preferredColorScheme(.dark)
+        .frame(width: 500, height: 600)
+}
+
+#Preview("With Notifications") {
+    let mockManager = NotificationManager.shared
+    mockManager.notificationCount = 5
+
+    return MainWindowView()
+        .environmentObject(mockManager)
+        .preferredColorScheme(.light)
+        .frame(width: 500, height: 600)
+}
+
+#Preview("No Notifications") {
+    let mockManager = NotificationManager.shared
+    mockManager.notificationCount = 0
+
+    return MainWindowView()
+        .environmentObject(mockManager)
+        .preferredColorScheme(.dark)
+        .frame(width: 500, height: 600)
 }
