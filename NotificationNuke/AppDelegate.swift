@@ -114,34 +114,39 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     private func openMainWindow() {
-        // Guard against opening window if already visible
-        guard mainWindow?.isVisible != true else {
-            mainWindow?.makeKeyAndOrderFront(nil)
-            NSApp.activate(ignoringOtherApps: true)
-            return
-        }
-
         if mainWindow == nil {
-            do {
-                let mainView = MainWindowView().environmentObject(NotificationManager.shared)
-                let hostingController = NSHostingController(rootView: mainView)
+            let mainView = MainWindowView().environmentObject(NotificationManager.shared)
+            let hostingController = NSHostingController(rootView: mainView)
 
-                let window = NSWindow(contentViewController: hostingController)
-                window.title = "NotificationNuke"
-                window.styleMask = [.titled, .closable, .miniaturizable]
-                window.setContentSize(NSSize(width: 500, height: 400))
-                window.center()
-                window.isReleasedWhenClosed = false
+            let window = NSWindow(contentViewController: hostingController)
+            window.title = "NotificationNuke"
 
-                // Set window delegate to handle close events
-                window.delegate = self
+            // App Store compliant window configuration
+            // Include resizable flag for better user experience and HIG compliance
+            window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
 
-                mainWindow = window
-                print("✅ Main window created")
-            } catch {
-                print("❌ Error creating main window: \(error)")
-                return
-            }
+            // Set initial size and constraints
+            window.setContentSize(NSSize(width: 500, height: 600))
+
+            // Set minimum and maximum sizes for proper window behavior
+            // Minimum: 400x500 (prevents UI from becoming unusable)
+            // Maximum: 600x800 (prevents excessive scaling on large displays)
+            window.minSize = NSSize(width: 400, height: 500)
+            window.maxSize = NSSize(width: 600, height: 800)
+
+            // Center window on screen (App Store recommended)
+            window.center()
+
+            // Keep window in memory when closed (for quick reopening)
+            window.isReleasedWhenClosed = false
+
+            // Enable window restoration (macOS 10.7+)
+            window.restorationClass = AppDelegate.self
+
+            // Accessibility: ensure window has proper title for VoiceOver
+            window.accessibilityLabel = "NotificationNuke Preferences"
+
+            mainWindow = window
         }
 
         mainWindow?.makeKeyAndOrderFront(nil)
