@@ -2,33 +2,61 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- Required Bundle Keys -->
 	<key>CFBundleDevelopmentRegion</key>
-	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<string>en</string>
+	<!-- App Store requirement: explicit development region -->
+
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
+
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<!-- Must match provisioning profile for App Store -->
+
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
+
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
+	<!-- Public version number -->
+
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
-	<key>LSMinimumSystemVersion</key>
-	<string>13.0</string>
+	<!-- Build version number, increment with each build -->
+
+	<!-- Application Category and System Requirements -->
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
+	<!-- Appropriate category for menu bar utility -->
+
+	<key>LSMinimumSystemVersion</key>
+	<string>13.0</string>
+	<!-- Minimum macOS version: Ventura 13.0 -->
+
+	<!-- Principal Class - Required for standard macOS application -->
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+
+	<!-- Copyright Information -->
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2024 NotificationNuke. All rights reserved.</string>
-	<key>NSUserNotificationAlertStyle</key>
-	<string>alert</string>
+	<string>Copyright © 2025 NotificationNuke. All rights reserved.</string>
+
+	<!-- Notification Usage Description for backward compatibility -->
+	<!-- Note: NSUserNotificationAlertStyle (deprecated) has been removed -->
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>NotificationNuke needs access to your notifications to display the count and clear them when requested.</string>
+
+	<!-- App Store Encryption Declaration -->
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<!-- No encryption used in this application -->
+
 </dict>
 </plist>
